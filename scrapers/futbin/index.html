@@ -1,0 +1,67 @@
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.css">
+<script src="./player_ids.js"></script>
+<span id="name">Name</span>
+<span id="market" class="ui two column grid">
+	<span class="column">Date</span>
+	<span class="column">Price</span>
+</span>
+<script>
+	function getQueryParams() {
+		qs = document.location.search
+	    qs = qs.split('+').join(' ');
+
+	    var params = {},
+	        tokens,
+	        re = /[?&]?([^=]+)=([^&]*)/g;
+
+	    while (tokens = re.exec(qs)) {
+	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+	    }
+
+	    return params;
+	}
+
+	var player = null
+	var market = null
+	function getMarket(player_id) {
+		return $.getJSON('./markets/' + player_id +'.json', function(data) {
+			market = data
+		})
+	}
+	function getPlayerData(player_id) {
+		return $.getJSON('./players/' + player_id +'.json', function(data) {
+			player = data
+			
+		})
+	}
+	function timeConverter(UNIX_timestamp){
+		var a = new Date(UNIX_timestamp);
+		var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+		var year = a.getFullYear();
+		var month = months[a.getMonth()];
+		var date = a.getDate();
+		var hour = a.getHours();
+		var min = a.getMinutes();
+		var sec = a.getSeconds();
+		var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+		return time;
+	}
+	$(document).ready(function() {
+	    playerId = getQueryParams().player
+	    getPlayerData(playerId).then(() => $("span#name").text(player.name))
+	    getMarket(playerId).then(() => {
+	    	market.xbox.forEach((pair) => {
+    			$( "#market" ).append("<div class='column'>" + timeConverter(pair[0]) + "</div>");
+    			$( "#market" ).append("<div class='column'>" + pair[1] + "</div>");
+	    	})
+	    })
+	    
+	});
+</script>
+<style>
+	.col {
+		width:50%;
+		display:inline-block;
+	}
+</style>
